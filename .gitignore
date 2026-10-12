@@ -1,0 +1,16 @@
+node_modules/
+/dist/
+/release/
+/coverage/
+/test-results/
+*.log
+.env
+# Local only: downloaded BMC files, reference checkouts, captured screens, private notes
+artifacts/
+refs/
+captures/
+tools/c-harness/build/
+private/
+# Launch files downloaded from a BMC carry session tokens; only the sanitized fixture is kept.
+*.jnlp
+!tests/fixtures/megarac-sp-195.jnlp
