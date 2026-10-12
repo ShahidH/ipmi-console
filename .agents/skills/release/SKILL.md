@@ -57,7 +57,7 @@ build fails, the release stays a draft. Fix the cause on `main` and re-run the w
 ## Workflows
 
 - `.github/workflows/ci.yml`: typecheck, lint, tests with coverage, e2e (development and packaged)
-  on Linux and Windows. Runs on pushes to `main` and on pull requests, and is called by the release
+  on Linux, Windows and macOS. Runs on pushes to `main` and on pull requests, and is called by the release
   workflow.
 - `.github/workflows/release.yml`: release-please, then build and publish.
 - Actions are pinned to commit SHAs with the version in a comment; keep it that way when updating.
