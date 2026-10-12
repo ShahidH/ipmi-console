@@ -1,6 +1,6 @@
 # Typecheck, lint, unit/component tests with coverage, the e2e suite against the
-# simulated BMC, and the same suite against the packaged app, on Linux and
-# Windows (the primary target). Also called by release.yml before building.
+# simulated BMC, and the same suite against the packaged app, on Linux, Windows
+# (the primary target) and macOS. Also called by release.yml before building.
 name: CI
 
 on:
@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
