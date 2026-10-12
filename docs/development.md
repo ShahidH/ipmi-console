@@ -167,3 +167,6 @@ Merging the release PR creates a draft release and its tag. `.github/workflows/r
 the full CI suite, builds the installers on Windows, Linux and macOS, attaches them and publishes the
 release. Windows code signing turns on when the `WINDOWS_SIGNING_CERT` and
 `WINDOWS_SIGNING_CERT_PASSWORD` secrets exist.
+
+If a build fails, the release stays a draft. Fix the cause on `main`, then run **Actions → Release →
+Run workflow** with the tag (e.g. `v0.1.0`) to build and publish it again.

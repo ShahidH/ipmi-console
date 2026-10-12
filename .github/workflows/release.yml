@@ -1,13 +1,20 @@
 # release-please keeps a release PR open with the next version and changelog,
 # built from Conventional Commits on main. Merging it creates a draft release and
 # its tag; the full CI suite then runs, the installers are built and attached, and
-# the release is published. Code signing turns on when the signing secrets exist
-# (electron-builder reads CSC_LINK / CSC_KEY_PASSWORD).
+# the release is published. Windows code signing turns on when the signing secrets
+# exist. "Run workflow" builds and publishes an existing tag again, e.g. after a
+# failed build was fixed.
 name: Release
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build and publish (e.g. v0.1.0)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -21,6 +28,7 @@ concurrency:
 
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -38,12 +46,17 @@ jobs:
 
   ci:
     needs: release-please
-    if: needs.release-please.outputs.created == 'true'
+    if: always() && (needs.release-please.outputs.created == 'true' || github.event_name == 'workflow_dispatch')
     uses: ./.github/workflows/ci.yml
 
   build:
     needs: [release-please, ci]
+    if: always() && needs.ci.result == 'success'
+    env:
+      TAG: ${{ needs.release-please.outputs.tag || inputs.tag }}
     strategy:
+      # Every system's build runs to the end, so one run shows all problems.
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
@@ -59,14 +72,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.release-please.outputs.tag }}
+          ref: ${{ env.TAG }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
       - name: Tag matches package.json version
         shell: bash
-        run: test "v$(node -p "require('./package.json').version")" = "${{ needs.release-please.outputs.tag }}"
+        run: test "v$(node -p "require('./package.json').version")" = "$TAG"
       - run: npm ci
       - run: npx install-electron --no
       # npm installs the keychain module's binary for this Mac's CPU only; the other app needs the other one.
@@ -76,11 +89,17 @@ jobs:
       - run: npm run build
       - name: Build installers
         shell: bash
-        run: npx electron-builder ${{ matrix.target }} --publish never
+        run: |
+          # Set the signing variables only when there is a certificate: electron-builder treats even
+          # an empty CSC_LINK as a certificate file. Windows only; on macOS it would be taken for an
+          # Apple identity.
+          if [ "$RUNNER_OS" = Windows ] && [ -n "$WINDOWS_CERT" ]; then
+            export CSC_LINK="$WINDOWS_CERT" CSC_KEY_PASSWORD="$WINDOWS_CERT_PASSWORD"
+          fi
+          npx electron-builder ${{ matrix.target }} --publish never
         env:
-          # The Windows certificate only; on macOS it would be taken for an Apple identity.
-          CSC_LINK: ${{ runner.os == 'Windows' && secrets.WINDOWS_SIGNING_CERT || '' }}
-          CSC_KEY_PASSWORD: ${{ runner.os == 'Windows' && secrets.WINDOWS_SIGNING_CERT_PASSWORD || '' }}
+          WINDOWS_CERT: ${{ secrets.WINDOWS_SIGNING_CERT }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERT_PASSWORD }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -95,6 +114,7 @@ jobs:
 
   publish:
     needs: [release-please, build]
+    if: always() && needs.build.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -106,7 +126,7 @@ jobs:
       - name: Attach installers and publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.release-please.outputs.tag }}
+          TAG: ${{ needs.release-please.outputs.tag || inputs.tag }}
         run: |
           gh release upload "$TAG" installers/* --repo "$GITHUB_REPOSITORY" --clobber
           gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --title "IPMI Console $TAG" --draft=false

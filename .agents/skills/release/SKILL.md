@@ -30,7 +30,9 @@ and `CHANGELOG.md`. Before it's merged, check:
 
 Merging creates a draft release and its tag. `.github/workflows/release.yml` then runs the full CI
 suite, builds installers on Windows, Linux and macOS, attaches them and publishes the release. If a
-build fails, the release stays a draft. Fix the cause on `main` and re-run the workflow.
+build fails, the release stays a draft. Fix the cause on `main`, then run **Actions → Release → Run
+workflow** with the tag (e.g. `v0.1.0`): it builds and publishes that tag with the fixed workflow.
+"Re-run failed jobs" isn't enough, because it reuses the workflow as it was at the tag.
 
 ## Packaging
 
