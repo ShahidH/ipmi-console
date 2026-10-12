@@ -1,0 +1,16 @@
+# Weekly dependency updates; Electron security releases matter most here.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    # Conventional Commits, as release-please and the commit-msg hook expect.
+    commit-message: { prefix: fix(deps), prefix-development: build(deps) }
+    groups:
+      dev-tooling:
+        dependency-type: development
+        exclude-patterns: [electron]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    commit-message: { prefix: ci }

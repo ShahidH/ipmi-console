@@ -1,0 +1,124 @@
+{
+  "name": "ipmi-console",
+  "version": "0.1.0",
+  "description": "IPMI Console",
+  "license": "MIT",
+  "author": "IPMI Console contributors",
+  "homepage": "https://github.com/ShahidH/ipmi-console",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ShahidH/ipmi-console.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ShahidH/ipmi-console/issues"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.12"
+  },
+  "main": "dist/main/main.js",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "start": "npm run build && electron .",
+    "probe": "node scripts/build.mjs --cli && node dist/cli/probe.js",
+    "sim": "node scripts/build.mjs --cli && node dist/cli/sim.js",
+    "dist:win": "npm run build && electron-builder --win --x64",
+    "test:e2e": "npm run build && playwright test",
+    "test:all": "npm run typecheck && npm run lint && npm run test:coverage && npm run test:e2e",
+    "lint": "eslint .",
+    "test:coverage": "vitest run --coverage",
+    "dist:dir": "npm run build && electron-builder --dir",
+    "test:package": "npm run dist:dir && node scripts/package-smoke.mjs",
+    "screenshots": "npm run build && cross-env SCREENSHOTS=1 playwright test e2e/screenshots.spec.ts",
+    "dist:mac": "node scripts/add-native-binaries.mjs darwin-x64 darwin-arm64 && npm run build && electron-builder --mac --x64 --arm64",
+    "dist:linux": "npm run build && electron-builder --linux --x64",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,mjs,js}": "eslint --max-warnings=0 --no-warn-ignored"
+  },
+  "devDependencies": {
+    "@electron/asar": "^4.3.1",
+    "@eslint/js": "^9.39.5",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
+    "@playwright/test": "^1.64.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/ws": "^8.18.2",
+    "@vitest/coverage-v8": "^5.0.3",
+    "cross-env": "^10.1.0",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "husky": "^9.1.7",
+    "jsdom": "^25.0.1",
+    "lint-staged": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
+  },
+  "dependencies": {
+    "@napi-rs/keyring": "2.1.1",
+    "egoroof-blowfish": "^4.0.3",
+    "ws": "^8.22.0"
+  },
+  "build": {
+    "appId": "io.github.shahidh.ipmiconsole",
+    "productName": "IPMI Console",
+    "copyright": "Copyright © 2026 IPMI Console contributors",
+    "files": [
+      "dist/main/**",
+      "dist/preload/**",
+      "dist/renderer/**",
+      "!**/*.map",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "directories": {
+      "output": "release"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Network"
+    },
+    "extraResources": [
+      {
+        "from": "LICENSE",
+        "to": "LICENSE.txt"
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      }
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.utilities",
+      "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
+      "identity": "-",
+      "hardenedRuntime": false
+    }
+  }
+}
