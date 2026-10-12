@@ -1,5 +1,5 @@
 /** The app window and the security settings that apply to it. */
-import { BrowserWindow, Menu, session } from 'electron';
+import { BrowserWindow, Menu, screen, session } from 'electron';
 import { join } from 'node:path';
 
 /** No remote content at all; fonts and scripts are bundled. */
@@ -16,9 +16,12 @@ export function applySecurityPolicy() {
 }
 
 export function createMainWindow(): BrowserWindow {
+  // Never larger than the screen: macOS treats a window that fills it as maximised, and the
+  // console doesn't resize a maximised window to show the server's screen at actual size.
+  const area = screen.getPrimaryDisplay().workAreaSize;
   const win = new BrowserWindow({
-    width: 1100,
-    height: 820,
+    width: Math.min(1100, area.width - 48),
+    height: Math.min(820, area.height - 48),
     minWidth: 640,
     minHeight: 480,
     title: 'IPMI Console',
