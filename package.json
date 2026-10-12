@@ -116,9 +116,18 @@
         "zip"
       ],
       "category": "public.app-category.utilities",
-      "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
+      "artifactName": "IPMI-Console-${version}-mac-${arch}.${ext}",
       "identity": "-",
       "hardenedRuntime": false
+    },
+    "nsis": {
+      "artifactName": "IPMI-Console-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "IPMI-Console-${version}-portable.${ext}"
+    },
+    "appImage": {
+      "artifactName": "IPMI-Console-${version}-${arch}.${ext}"
     }
   }
 }
