@@ -121,6 +121,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
+          # Only the installers; CI saves its test reports in the same run.
+          pattern: installers-*
           path: installers
           merge-multiple: true
       - name: Attach installers and publish the release
@@ -128,5 +130,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.release-please.outputs.tag || inputs.tag }}
         run: |
-          gh release upload "$TAG" installers/* --repo "$GITHUB_REPOSITORY" --clobber
+          # Files left on the draft by an earlier, failed attempt go first, so a re-run leaves no extras.
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' |
+            while read -r name; do gh release delete-asset "$TAG" "$name" --repo "$GITHUB_REPOSITORY" --yes; done
+          gh release upload "$TAG" installers/* --repo "$GITHUB_REPOSITORY"
           gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --title "IPMI Console $TAG" --draft=false
