@@ -72,7 +72,7 @@
   "dependencies": {
     "@napi-rs/keyring": "2.1.1",
     "egoroof-blowfish": "^4.0.3",
-    "ws": "^8.22.0"
+    "ws": "^8.22.1"
   },
   "build": {
     "appId": "io.github.shahidh.ipmiconsole",
